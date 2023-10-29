@@ -1,0 +1,7 @@
+https://pyimagesearch.com/2018/07/30/opencv-object-tracking/
+https://broutonlab.com/blog/opencv-object-tracking
+
+I recommend using either CSRT, KCF, or MOSSE for most object tracking applications:
+ * Use CSRT when you need higher object tracking accuracy and can tolerate slower FPS throughput
+ * Use KCF when you need faster FPS throughput but can handle slightly lower object tracking accuracy
+ * Use MOSSE when you need pure speed
