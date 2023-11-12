@@ -8,7 +8,7 @@ from deepface.detectors import FaceDetector
 
 import DeepFace_custom
 
-FACE_DETECTOR_BACKEND = "mediapipe"
+FACE_DETECTOR_BACKEND = "opencv"
 
 faces_df = pd.read_csv("./data_embeddings/data_embeddings_by_Facenet_rot.csv")
 new_user_face_num = -1
@@ -108,8 +108,6 @@ cap.set(4, 720)
 
 detector = FaceDetector.build_model('opencv')
 
-tracker_obj = None
-tracked_name = "UNDEFINED"
 frames_count = 0
 
 
@@ -118,55 +116,71 @@ font_scale = 0.5
 color = (165, 255, 0)
 thickness = 2
 
+trackers_dict = dict()
+
 while True:
     ret, img = cap.read()
     if not ret:
         print("Unable to read image")
 
-    if not tracker_obj:
+    faces = None
+    if frames_count % 5 == 0:
         faces = FaceDetector.detect_faces(detector, FACE_DETECTOR_BACKEND, img)
 
         for inx_, face_ in enumerate(faces):
             x, y, w, h = face_[1]
             roi_color = img[y:y + h, x:x + w]
 
-            tracked_name = verify_face_name(roi_color)
+            tracker_face_overlap = 0
+            for tr_obj in trackers_dict.values():
+                tfo = calculate_overlap_percentage((x, y, w, h), tr_obj[1])
+                tracker_face_overlap = tfo if tfo > tracker_face_overlap else tracker_face_overlap
 
-            if tracked_name != "UNDEFINED":
-                img = cv2.putText(img, tracked_name, (x, y), font, font_scale, color, thickness, cv2.LINE_AA)
+            if tracker_face_overlap < 0.1:
+                tracked_name = verify_face_name(roi_color)
 
-                tracker_obj = get_tracker()()
-                tracker_obj.init(img, face_[1])
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                break
-    else:
-        tracked_res = tracker_obj.update(img)
+                if tracked_name != "UNDEFINED":
+                    img = cv2.putText(img, tracked_name, (x, y), font, font_scale, color, thickness, cv2.LINE_AA)
 
-        if tracked_res[0]:
-            x, y, w, h = tracked_res[1]
+                    tracker_obj = get_tracker()()
+                    tracker_obj.init(img, face_[1])
+                    trackers_dict[tracked_name] = [tracker_obj, (x, y, w, h), True]
+                    cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                    break
+    if trackers_dict:
+        for tracked_name in list(trackers_dict.keys()):
+            tracker_obj = trackers_dict[tracked_name]
+            if tracker_obj[2]:
+                tracker_obj[2] = False
+                continue
+            tracked_res = tracker_obj[0].update(img)
 
-            is_tracker_correct = True
-            if frames_count % 25 == 0:
-                frames_count = 0
-                faces = FaceDetector.detect_faces(detector, FACE_DETECTOR_BACKEND, img)
+            if tracked_res[0]:
+                x, y, w, h = tracked_res[1]
 
-                is_tracker_correct = False
-                for face_ in faces:
-                    overlap = calculate_overlap_percentage(face_[1], tracked_res[1])
-                    print(overlap)
-                    if overlap > 0.7:
-                        is_tracker_correct = True
-                        break
+                is_tracker_correct = True
+                if frames_count % 25 == 0:
+                    frames_count = 0
+                    faces = FaceDetector.detect_faces(detector, FACE_DETECTOR_BACKEND, img) if not faces else faces
 
-            if is_tracker_correct:
-                img = cv2.putText(img, tracked_name, (int(x), int(y)-3), font, font_scale, color, thickness, cv2.LINE_AA)
-                cv2.rectangle(img, (int(x), int(y)), (int(x + w), int(y + h)), (255, 0, 0), 2)
+                    is_tracker_correct = False
+                    for face_ in faces:
+                        overlap = calculate_overlap_percentage(face_[1], tracked_res[1])
+                        print(overlap)
+                        if overlap > 0.7:
+                            is_tracker_correct = True
+                            break
+
+                if is_tracker_correct:
+                    tracker_obj[1] = (x, y, w, h)
+                    img = cv2.putText(img, tracked_name, (int(x), int(y)-3), font, font_scale, color, thickness, cv2.LINE_AA)
+                    cv2.rectangle(img, (int(x), int(y)), (int(x + w), int(y + h)), (255, 0, 0), 2)
+                else:
+                    del trackers_dict[tracked_name]
+                    print("Loose tracker by FaceDetector")
             else:
-                tracker_obj = None
-                print("Loose tracker by FaceDetector")
-        else:
-            tracker_obj = None
-            print("Loose tracker")
+                del trackers_dict[tracked_name]
+                print("Loose tracker")
 
     frames_count += 1
     cv2.imshow('video', img)
