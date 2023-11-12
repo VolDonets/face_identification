@@ -8,6 +8,7 @@ from deepface.detectors import FaceDetector
 
 import DeepFace_custom
 
+# "opencv", "ssd", "dlib", "mtcnn", "retinaface", "mediapipe"
 FACE_DETECTOR_BACKEND = "opencv"
 
 faces_df = pd.read_csv("./data_embeddings/data_embeddings_by_Facenet_rot.csv")
@@ -106,7 +107,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3, 1280)
 cap.set(4, 720)
 
-detector = FaceDetector.build_model('opencv')
+detector = FaceDetector.build_model(FACE_DETECTOR_BACKEND)
 
 frames_count = 0
 
