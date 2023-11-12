@@ -8,6 +8,7 @@ from deepface.detectors import FaceDetector
 
 import DeepFace_custom
 
+FACE_DETECTOR_BACKEND = "mediapipe"
 
 faces_df = pd.read_csv("./data_embeddings/data_embeddings_by_Facenet_rot.csv")
 new_user_face_num = -1
@@ -123,7 +124,7 @@ while True:
         print("Unable to read image")
 
     if not tracker_obj:
-        faces = FaceDetector.detect_faces(detector, "opencv", img)
+        faces = FaceDetector.detect_faces(detector, FACE_DETECTOR_BACKEND, img)
 
         for inx_, face_ in enumerate(faces):
             x, y, w, h = face_[1]
@@ -147,7 +148,7 @@ while True:
             is_tracker_correct = True
             if frames_count % 25 == 0:
                 frames_count = 0
-                faces = FaceDetector.detect_faces(detector, "opencv", img)
+                faces = FaceDetector.detect_faces(detector, FACE_DETECTOR_BACKEND, img)
 
                 is_tracker_correct = False
                 for face_ in faces:
