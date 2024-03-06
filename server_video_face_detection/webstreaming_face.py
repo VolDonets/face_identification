@@ -21,8 +21,8 @@ app = Flask(__name__)
 # initialize the video stream and allow the camera sensor to
 # warmup
 cap = cv2.VideoCapture(0)
-cap.set(3, 1280)
-cap.set(4, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 time.sleep(2.0)
 

@@ -3,7 +3,6 @@ import pandas as pd
 import cv2
 from queue import Queue
 
-from deepface import DeepFace
 from deepface.detectors import FaceDetector
 
 import DeepFace_custom
