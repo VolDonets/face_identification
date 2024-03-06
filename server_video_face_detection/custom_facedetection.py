@@ -9,7 +9,7 @@ import DeepFace_custom
 
 FACE_DETECTOR_BACKEND = "opencv"
 
-faces_df = pd.read_csv("../face_id_by_Alex/data_embeddings/data_embeddings_by_Facenet_rot.csv")
+faces_df = pd.read_csv("./data_embeddings/data_embeddings_by_Facenet_rot.csv")
 new_user_face_num = -1
 
 from threading import Thread
