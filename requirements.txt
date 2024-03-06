@@ -1,6 +1,7 @@
 imutils~=0.5.4
-opencv-python==4.8.1.78
+opencv-python~=4.8.1.78
+opencv-contrib-python~=4.8.1.78
 flask~=3.0.0
 numpy~=1.26.2
-deepface==0.0.79
+deepface~=0.0.79
 pandas~=2.1.3
